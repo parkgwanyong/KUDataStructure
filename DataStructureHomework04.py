@@ -1,4 +1,15 @@
 
+import os
+
+def searchfile(dirname):
+    searchlist =[]
+    filenames = os.listdir(dirname)
+    for filename in filenames:
+        ext = os.path.splitext(filename)[-1]
+        if ext == '.txt':
+            searchlist.append(filename)
+    return searchlist
+
 
 class Node:
     Red = True
@@ -42,63 +53,60 @@ class RedBlackTree:
         self.root = NilNode.instance()
         self.size = 0
 
-    def insert(self, x):
-        self.insert_fixup(x)
+    def insert(self, InsertNode):
+        self.insert_fixup(InsertNode)
 
-        x.color = Node.Red
-        while x != self.root and x.parent.color == Node.Red:
-            if x.parent == x.parent.parent.left:
-                y = x.parent.parent.right
+        InsertNode.color = Node.Red
+        while InsertNode != self.root and InsertNode.parent.color == Node.Red:
+            if InsertNode.parent == InsertNode.parent.parent.left:
+                y = InsertNode.parent.parent.right
                 if y and y.color == Node.Red:
-                    x.parent.color = Node.Black
+                    InsertNode.parent.color = Node.Black
                     y.color = Node.Black
-                    x.parent.parent.color = Node.Red
-                    x = x.parent.parent
+                    InsertNode.parent.parent.color = Node.Red
+                    InsertNode = InsertNode.parent.parent
                 else:
-                    if x == x.parent.right:
-                        x = x.parent
-                        self.left_rotate(x)
-                    x.parent.color = Node.Black
-                    x.parent.parent.color = Node.Red
-                    self.right_rotate(x.parent.parent)
+                    if InsertNode == InsertNode.parent.right:
+                        InsertNode = InsertNode.parent
+                        self.left_rotate(InsertNode)
+                    InsertNode.parent.color = Node.Black
+                    InsertNode.parent.parent.color = Node.Red
+                    self.right_rotate(InsertNode.parent.parent)
             else:
-                y = x.parent.parent.left
+                y = InsertNode.parent.parent.left
                 if y and y.color == Node.Red:
-                    x.parent.color = Node.Black
+                    InsertNode.parent.color = Node.Black
                     y.color = Node.Black
-                    x.parent.parent.color = Node.Red
-                    x = x.parent.parent
+                    InsertNode.parent.parent.color = Node.Red
+                    InsertNode = InsertNode.parent.parent
                 else:
-                    if x == x.parent.left:
-                        x = x.parent
-                        self.right_rotate(x)
-                    x.parent.color = Node.Black
-                    x.parent.parent.color = Node.Red
-                    self.left_rotate(x.parent.parent)
+                    if InsertNode == InsertNode.parent.left:
+                        InsertNode = InsertNode.parent
+                        self.right_rotate(InsertNode)
+                    InsertNode.parent.color = Node.Black
+                    InsertNode.parent.parent.color = Node.Red
+                    self.left_rotate(InsertNode.parent.parent)
         self.root.color = Node.Black
 
-
-    def insert_fixup(self, z):
-        y = NilNode.instance()
-        x = self.root
-        while x:
-            y = x
-            if z.key < x.key:
-                x = x.left
+    def insert_fixup(self, FixupNode):
+        TmpNode = NilNode.instance()
+        CheckNode = self.root
+        while CheckNode:
+            TmpNode = CheckNode
+            if FixupNode.key < CheckNode.key:
+                CheckNode = CheckNode.left
             else:
-                x = x.right
+                CheckNode = CheckNode.right
 
-        z.parent = y
-        if not y:
-            self.root = z
+        FixupNode.parent = TmpNode
+        if not TmpNode:
+            self.root = FixupNode
         else:
-            if z.key < y.key:
-                y.left = z
+            if FixupNode.key < TmpNode.key:
+                TmpNode.left = FixupNode
             else:
-                y.right = z
-
+                TmpNode.right = FixupNode
         self.size += 1
-
 
     def delete(self, z):
         if not z.left or not z.right:
@@ -109,6 +117,8 @@ class RedBlackTree:
             x = y.right
         else:
             x = y.left
+        if x is None:
+            return
         x.parent = y.parent
 
         if not y.parent:
@@ -127,35 +137,27 @@ class RedBlackTree:
         self.size -= 1
         return y
 
-    def minimum(self, x=None):
-        if x is None: x = self.root
-        while x.left:
-            x = x.left
-        return x
+    def minimum(self, min=None):
+        if min is None: min = self.root
+        while min.left:
+            min = min.left
+        return min
 
-    def maximum(self, x=None):
-        if x is None: x = self.root
-        while x.right:
-            x = x.right
-        return x
+    def successor(self, current):
+        if current.right:
+            return self.minimum(current.right)
+        successor = current.parent
+        while successor and current == successor.right:
+            current = successor
+            successor = successor.parent
+        return successor
 
-    def successor(self, x):
-        if x.right:
-            return self.minimum(x.right)
-        y = x.parent
-        while y and x == y.right:
-            x = y
-            y = y.parent
-        return y
-
-
-    def inorder_walk(self, x=None):
+    def inorder_walk(self):
         inorderarr = []
-        if x is None: x = self.root
-        x = self.minimum()
-        while x:
-            inorderarr.append(x)
-            x = self.successor(x)
+        root = self.minimum()
+        while root:
+            inorderarr.append(root)
+            root = self.successor(root)
         return inorderarr
 
     def nodecounter(self):
@@ -166,30 +168,28 @@ class RedBlackTree:
                 count = count + 1
         return count
 
-    def search(self, key, x=None):
-        if x is None: x = self.root
-        while x and x.key != key:
-            if key < x.key:
-                x = x.left
+    def search(self, key):
+        FoundNode = self.root
+        while FoundNode and FoundNode.key != key:
+            if key < FoundNode.key:
+                FoundNode = FoundNode.left
             else:
-                x = x.right
-        return x
+                FoundNode = FoundNode.right
+        return FoundNode
 
     def is_empty(self):
         return bool(self.root)
 
-    def blackheight(self, x=None):
-        if x is None: x = self.root
+    def blackheight(self):
+        root = self.root
         height = 0
-        while x:
-            x = x.left
-            if not x or x.color ==Node.Black:
+        while root:
+            root = root.left
+            if not root or root.color == Node.Black:
                 height += 1
         return height
 
     def left_rotate(self, x):
-        if not x.right:
-            raise "x.right is nil!"
         y = x.right
         x.right = y.left
         if y.left: y.left.parent = x
@@ -205,8 +205,6 @@ class RedBlackTree:
         x.parent = y
 
     def right_rotate(self, x):
-        if not x.left:
-            raise "x.left is nil!"
         y = x.left
         x.left = y.right
         if y.right: y.right.parent = x
@@ -271,23 +269,42 @@ class RedBlackTree:
 
 
 def main():
-    f = open("input.txt", 'r')
-    tmpdata = f.read()
-    data = tmpdata.split()
-    f.close()
-    tree = RedBlackTree()
-    for i in data:
-        if int(i) > 0:
-            tree.insert(Node(int(i)))
-        elif int(i) <0:
-            findnode = tree.search(abs(int(i)))
-            tree.delete(findnode)
-        else:
-            inorder = tree.inorder_walk()
-            print("total = {0}".format(len(inorder)))
-            print("nb = {0}".format(tree.nodecounter()))
-            print("blackheight = {0}".format(tree.blackheight()))
-            for key in inorder:
-                print(key.key)
+    insertcount = 0
+    deletecount = 0
+    misscount = 0
+    fname = searchfile(os.getcwd())
+    for fnames in fname:
 
+     f = open(fnames, 'r')
+     tmpdata = f.read()
+     data = tmpdata.split()
+     f.close()
+     tree = RedBlackTree()
+     for i in data:
+         if int(i) > 0:
+             insertcount = insertcount +1
+             tree.insert(Node(int(i)))
+         elif int(i) <0:
+             findnode = tree.search(abs(int(i)))
+             if findnode:
+                 deletecount = deletecount+1
+             else:
+                 misscount = misscount +1
+             tree.delete(findnode)
+         else:
+             inorder = tree.inorder_walk()
+             print("filename = {0}".format(fnames))
+             print("total = {0}".format(len(inorder)))
+             print("insert = {0}".format(insertcount))
+             print("deleted = {0}".format(deletecount))
+             print("miss = {0}".format(misscount))
+             print("nb = {0}".format(tree.nodecounter()))
+             print("bh = {0}".format(tree.blackheight()))
+             def printcolor():
+                 if key.color:
+                     return "R"
+                 else:
+                     return "B"
+             for key in inorder:
+                 print("{0} {1}".format(key.key,printcolor()))
 main()
