@@ -269,11 +269,12 @@ class RedBlackTree:
 
 
 def main():
-    insertcount = 0
-    deletecount = 0
-    misscount = 0
+
     fname = searchfile(os.getcwd())
     for fnames in fname:
+     insertcount = 0
+     deletecount = 0
+     misscount = 0
 
      f = open(fnames, 'r')
      tmpdata = f.read()
